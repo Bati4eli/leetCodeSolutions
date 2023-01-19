@@ -2,14 +2,18 @@ package _037_Sudoku;
 
 // https://leetcode.com/problems/sudoku-solver/
 
-import org.w3c.dom.ls.LSOutput;
-
 import java.util.ArrayDeque;
 import java.util.Objects;
 
 class Solution {
+    final int guessAmount = 2; // максимальное количество чисел из которых требуется угадывать
 
     public void solveSudoku(char[][] board) {
+        solverSudokuWithSteps(board, false);
+        System.out.println("end");
+    }
+
+    private void solverSudokuWithSteps(char[][] board, boolean isSubstitution) {
         ArrayDeque<Point> points = new ArrayDeque<>();// Comparator.comparingInt(o -> o.amountBusy)
 
         fillQueue(board, points);
@@ -19,9 +23,12 @@ class Solution {
 
         while (!points.isEmpty()) {
             Point point = points.poll();
-            //substitution method
-            if (amountFails >= points.size()) { // если не удается найти решение, придется идти методом подбора
+            if (amountFails >= points.size() && points.size() > 0 && isSubstitution) {
+                return;
+            } else if (amountFails >= points.size() && points.size() > 0) { // если не удается найти решение, придется идти методом подбора
                 System.out.println("substitution method");
+                --amountFails;
+                substitutionMethod(board, points);
             } else if (board[point.rowNum][point.columnNum] != '.') { // если точка уже имеет значение, выкидываем из очереди
                 continue;
             } else if (Objects.equals(lastPoint, point)) { // если только что проверяли эту точку, вставляем в конец очереди
@@ -36,6 +43,88 @@ class Solution {
             }
             lastPoint = point;
         }
+    }
+
+    private boolean substitutionMethod(char[][] board, ArrayDeque<Point> points) {
+        Point pivot = null;
+        for (Point point : points) {
+            // перерасчет занятых чисел для этой точки
+            point.reset();
+            boolean found = checkrow(board, point) ||
+                    checkcolumn(board, point) ||
+                    checkBox(board, point);
+
+            if (point.amountBusy >= 9 - guessAmount) {
+                pivot = point;
+                break;
+            }
+        }
+
+        int tryNumber = -1;
+        while (tryNumber < guessAmount) {
+            char[][] copyBoard = board.clone();
+            char guessChar = getGuessChar(++tryNumber, pivot);
+            copyBoard[pivot.rowNum][pivot.columnNum] = guessChar;
+            solverSudokuWithSteps(copyBoard, true);
+            if (isValidBoard(copyBoard)) {
+                saveValues(copyBoard, board);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void saveValues(char[][] source, char[][] target) {
+        for (int i = 0; i < source.length; i++) {
+            for (int j = 0; j < source[i].length; j++) {
+                target[i][j] = source[i][j];
+            }
+        }
+    }
+
+    /**
+     * Если в таблице есть точки '.' - таблица не валидна,
+     * если если сумма чисел в строке не равна 45 - таблица не валидна
+     */
+    private boolean isValidBoard(char[][] board) {
+        final int summ1to9 = 45;
+        for (int i = 0; i < board.length; i++) {
+            int summ = 0;
+            for (int j = 0; j < board[i].length; j++) {
+                char ch = board[i][j];
+                if (ch == '.') {
+                    return false;
+                }
+                summ += convertCharToInt(ch);
+            }
+            if (summ != summ1to9) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private char getGuessChar(int tryNumber, Point pivot) {
+        int guessCursor = 0;
+        char guessChar = '.';
+        for (int intNum = 0; intNum < pivot.busyNums.length; intNum++) {
+            if (!pivot.busyNums[intNum]) {
+                if (guessCursor == tryNumber) {
+                    guessChar = convertIntToChar(intNum + 1);
+                    break;
+                }
+                ++guessCursor;
+            }
+        }
+        return guessChar;
+    }
+
+    private char convertIntToChar(int intNum) {
+        return (char) ('0' + intNum);
+    }
+
+    private int convertCharToInt(char num) {
+        return num - '0';
     }
 
     private void fillQueue(char[][] board, ArrayDeque<Point> points) {
@@ -83,7 +172,7 @@ class Solution {
     private char findNumber(Point point) {
         //point.amountBusy = 0;
         for (char num = '1'; num <= '9'; num++) {
-            int intNum = num - '0' - 1;
+            int intNum = convertCharToInt(num) - 1;
             //point.amountBusy += point.busyNums[intNum] ? 1 : 0;
             if (!point.busyNums[intNum]) {
                 point.symbol = num;
@@ -300,12 +389,30 @@ class Solution {
     }
 }
 
-//0 = {char[9]@899} [ ., ., 9,  7, 4, 8,  ., ., 2 ]
-//1 = {char[9]@900} [ 7, ., .,  6, ., 2,  ., ., 9 ]
-//2 = {char[9]@901} [ ., 2, .,  1, ., 9,  ., ., . ]
-//3 = {char[9]@902} [ ., ., 7,  9, 8, 6,  2, 4, 1 ]
-//4 = {char[9]@903} [ 2, 6, 4,  3, 1, 7,  5, 9, 8 ]
-//5 = {char[9]@904} [ 1, 9, 8,  5, 2, 4,  3, 6, 7 ]
-//6 = {char[9]@905} [ 9, ., .,  8, 6, 3,  ., 2, . ]
-//7 = {char[9]@906} [ ., ., 2,  4, 9, 1,  ., ., 6 ]
-//8 = {char[9]@907} [ ., ., .,  2, 7, 5,  9, ., . ]
+//[ Output
+//          ["8","4","5",  "2","1","9",  "7","6","3"],
+//          ["3","9","7",  "8","6","5",  "4","2","1"],
+//          ["2","6","1",  "4","7","3",  "9","8","5"],
+
+//          ["7","5","8",  "1","4","2",  "3","9","6"],
+//          ["9","1","2",  "5","3","8",  "6","4","7"],
+//          ["1","3","6",  "9","2","7",  "8","5","4"],
+
+//          ["1","2","6",  "3","8","4",  "5","7","9"],
+//          ["5","9","3",  "7","2","6",  "1","4","8"],
+//          ["4","7","9",  "6","5","1",  "2","3","8"]
+// Expected
+//[
+    //      ["8","5","4",  "2","1","9",  "7","6","3"]
+    //      ["3","9","7",  "8","6","5",  "4","2","1"]
+    //      ["2","6","1",  "4","7","3",  "9","8","5"],
+
+    //      ["7","8","5",  "1","2","6",  "3","9","4"],
+    //      ["6","4","9",  "5","3","8",  "1","7","2"],
+    //      ["1","3","2",  "9","4","7",  "8","5","6"],
+
+
+    //      ["9","2","6",  "3","8","4",  "5","1","7"],
+    //      ["5","1","3",  "7","9","2",  "6","4","8"],
+    //      ["4","7","8",  "6","5","1",  "2","3","9"]
+// ]
