@@ -2,46 +2,12 @@ package _037_Sudoku;
 
 // https://leetcode.com/problems/sudoku-solver/
 
+import org.w3c.dom.ls.LSOutput;
+
 import java.util.ArrayDeque;
 import java.util.Objects;
 
 class Solution {
-
-    @FunctionalInterface
-    interface Condition {
-        boolean count(int row, int column);
-    }
-
-    class Point {
-        int rowNum;
-        int columnNum;
-        char symbol = '.';
-        int amountBusy = 0;
-        boolean[] busyNums = new boolean[9];
-
-        public Point(int rowNum, int columnNum) {
-            this.rowNum = rowNum;
-            this.columnNum = columnNum;
-        }
-
-        public void reset() {
-            amountBusy = 0;
-            busyNums = new boolean[9];
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Point point = (Point) o;
-            return rowNum == point.rowNum && columnNum == point.columnNum;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(rowNum, columnNum);
-        }
-    }
 
     public void solveSudoku(char[][] board) {
         ArrayDeque<Point> points = new ArrayDeque<>();// Comparator.comparingInt(o -> o.amountBusy)
@@ -49,16 +15,24 @@ class Solution {
         fillQueue(board, points);
 
         Point lastPoint = null;
+        int amountFails = 0;
 
         while (!points.isEmpty()) {
             Point point = points.poll();
-
-            if (board[point.rowNum][point.columnNum] != '.') { // если точка уже имеет значение, выкидываем из очереди
+            //substitution method
+            if (amountFails >= points.size()) { // если не удается найти решение, придется идти методом подбора
+                System.out.println("substitution method");
+            } else if (board[point.rowNum][point.columnNum] != '.') { // если точка уже имеет значение, выкидываем из очереди
                 continue;
             } else if (Objects.equals(lastPoint, point)) { // если только что проверяли эту точку, вставляем в конец очереди
                 points.addLast(point);
             } else {
-                calculatePoint(board, points, point);
+                boolean found = calculatePoint(board, points, point);
+                if (found) {
+                    amountFails = 0;
+                } else {
+                    ++amountFails;
+                }
             }
             lastPoint = point;
         }
@@ -76,7 +50,10 @@ class Solution {
         }
     }
 
-    private void calculatePoint(char[][] board, ArrayDeque<Point> points, Point point) {
+    /**
+     * @return true - если найдено и вставлено число
+     */
+    private boolean calculatePoint(char[][] board, ArrayDeque<Point> points, Point point) {
         point.reset();
 
         boolean found = checkrow(board, point) ||
@@ -86,11 +63,12 @@ class Solution {
         // если получилось найти методом исключения из соседних строк и столбцов одного квадрата
         // то выходим из калькулятора, в очередь не добавляем задание
         if (!found && checkBoxRowsAndLines(board, point)) {
-            return;
+            return true;
         }
 
         if (point.amountBusy == 8) {
             saveNumberOnTheBoard(point.rowNum, point.columnNum, board, findNumber(point));
+            return true;
         } else {
             // точки, у которых мало возможных вариантов чисел, кладем в верх очереди
             if (point.amountBusy > 6) {
@@ -98,6 +76,7 @@ class Solution {
             } else {
                 points.addLast(point);
             }
+            return false;
         }
     }
 
@@ -163,6 +142,7 @@ class Solution {
                     }
                     if (amountFilledCells == 8) { // если число больше некуда вставлять, вставляем
                         saveNumberOnTheBoard(rr, cc, board, num);
+                        return true;
                     }
                 }
             }
@@ -251,6 +231,42 @@ class Solution {
                 ++point.amountBusy;
                 point.busyNums[ind] = true;
             }
+        }
+    }
+
+    @FunctionalInterface
+    interface Condition {
+        boolean count(int row, int column);
+    }
+
+    class Point {
+        int rowNum;
+        int columnNum;
+        char symbol = '.';
+        int amountBusy = 0;
+        boolean[] busyNums = new boolean[9];
+
+        public Point(int rowNum, int columnNum) {
+            this.rowNum = rowNum;
+            this.columnNum = columnNum;
+        }
+
+        public void reset() {
+            amountBusy = 0;
+            busyNums = new boolean[9];
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Point point = (Point) o;
+            return rowNum == point.rowNum && columnNum == point.columnNum;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(rowNum, columnNum);
         }
     }
 
