@@ -4,6 +4,7 @@ package _037_Sudoku;
 
 import java.util.ArrayDeque;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 class Solution {
     final int guessAmount = 2; // максимальное количество чисел из которых требуется угадывать
@@ -26,10 +27,14 @@ class Solution {
             if (amountFails >= points.size() && points.size() > 0 && isSubstitution) {
                 return;
             } else if (amountFails >= points.size() && points.size() > 0) { // если не удается найти решение, придется идти методом подбора
-                System.out.println("substitution method");
+                System.out.println("substitution method for point: " + point.toString());
                 --amountFails;
-                substitutionMethod(board, points);
+                points.addFirst(point);
+                if (substitutionMethod(board, points)) { // если метод подбора сработал, то нужно сбросить счетчик фейлов в ноль
+                    amountFails = 0;
+                }
             } else if (board[point.rowNum][point.columnNum] != '.') { // если точка уже имеет значение, выкидываем из очереди
+                --amountFails;
                 continue;
             } else if (Objects.equals(lastPoint, point)) { // если только что проверяли эту точку, вставляем в конец очереди
                 points.addLast(point);
@@ -50,11 +55,11 @@ class Solution {
         for (Point point : points) {
             // перерасчет занятых чисел для этой точки
             point.reset();
-            boolean found = checkrow(board, point) ||
-                    checkcolumn(board, point) ||
+            boolean found = checkRow(board, point) ||
+                    checkColumn(board, point) ||
                     checkBox(board, point);
 
-            if (point.amountBusy >= 9 - guessAmount) {
+            if (point.amountBusy == 9 - guessAmount) {
                 pivot = point;
                 break;
             }
@@ -64,44 +69,51 @@ class Solution {
         while (tryNumber < guessAmount) {
             char[][] copyBoard = board.clone();
             char guessChar = getGuessChar(++tryNumber, pivot);
+            System.out.println("Try to guess number [" + guessChar + "]");
             copyBoard[pivot.rowNum][pivot.columnNum] = guessChar;
             solverSudokuWithSteps(copyBoard, true);
             if (isValidBoard(copyBoard)) {
-                saveValues(copyBoard, board);
+                System.out.println("substitutionMethod successfully completed, save result on main array!");
+                saveBoard(copyBoard, board);
                 return true;
+            } else {
+                System.out.println("substitutionMethod fail, try next number..");
             }
         }
+        System.out.println("substitutionMethod fail ..");
         return false;
     }
 
-    private void saveValues(char[][] source, char[][] target) {
-        for (int i = 0; i < source.length; i++) {
-            for (int j = 0; j < source[i].length; j++) {
-                target[i][j] = source[i][j];
-            }
-        }
+    private void saveBoard(char[][] source, char[][] target) {
+        IntStream
+                .range(0, source.length)
+                .forEach(i -> System.arraycopy(source[i], 0, target[i], 0, source[i].length));
     }
 
     /**
      * Если в таблице есть точки '.' - таблица не валидна,
-     * если если сумма чисел в строке не равна 45 - таблица не валидна
+     * если сумма чисел в строке не равна 45 - таблица не валидна
      */
     private boolean isValidBoard(char[][] board) {
-        final int summ1to9 = 45;
-        for (int i = 0; i < board.length; i++) {
-            int summ = 0;
-            for (int j = 0; j < board[i].length; j++) {
-                char ch = board[i][j];
+        final int expectedSum = 45;
+        final int expectedTotal = expectedSum * 9;
+
+        int sumBoard = 0;
+
+        for (char[] chars : board) {
+            int sumRow = 0;
+            for (char ch : chars) {
                 if (ch == '.') {
                     return false;
                 }
-                summ += convertCharToInt(ch);
+                sumRow += convertCharToInt(ch);
             }
-            if (summ != summ1to9) {
+            if (sumRow != expectedSum) {
                 return false;
             }
+            sumBoard += sumRow;
         }
-        return true;
+        return sumBoard == expectedTotal;
     }
 
     private char getGuessChar(int tryNumber, Point pivot) {
@@ -145,8 +157,8 @@ class Solution {
     private boolean calculatePoint(char[][] board, ArrayDeque<Point> points, Point point) {
         point.reset();
 
-        boolean found = checkrow(board, point) ||
-                checkcolumn(board, point) ||
+        boolean found = checkRow(board, point) ||
+                checkColumn(board, point) ||
                 checkBox(board, point);
 
         // если получилось найти методом исключения из соседних строк и столбцов одного квадрата
@@ -188,7 +200,7 @@ class Solution {
 
         for (char num = '1'; num <= '9'; num++) {
 
-            int numberToSearch = num - '0' - 1;
+            int numberToSearch = convertCharToInt(num) - 1;
             // если число свободно, то смотрим на соседние строки и столбцы одного квадрата
             if (!point.busyNums[numberToSearch]) {
                 boolean otherRowsHasNumber = true;
@@ -241,7 +253,7 @@ class Solution {
 
     private void saveNumberOnTheBoard(int rr, int cc, char[][] board, char num) {
         board[rr][cc] = num;
-        System.out.println("row: " + rr + " column: " + cc + " char: " + num);
+        System.out.println("Save number: " + num + "\trow: " + rr + " column: " + cc);
     }
 
     /**
@@ -266,16 +278,18 @@ class Solution {
 
     private boolean rowHasNumber(char num, int rowNum, char[][] board) {
         for (int i = 0; i < board.length; i++) {
-            if (board[rowNum][i] == num)
+            if (board[rowNum][i] == num) {
                 return true;
+            }
         }
         return false;
     }
 
     private boolean columnHasNumber(char num, int columnNum, char[][] board) {
         for (int j = 0; j < board.length; j++) {
-            if (board[j][columnNum] == num)
+            if (board[j][columnNum] == num) {
                 return true;
+            }
         }
         return false;
     }
@@ -295,7 +309,7 @@ class Solution {
         return point.amountBusy == 8;
     }
 
-    private boolean checkcolumn(char[][] board, Point point) {
+    private boolean checkColumn(char[][] board, Point point) {
         for (int i = 0; i < board.length; i++) {
             char number = board[i][point.columnNum];
             writeBusyNum(number, point);
@@ -305,7 +319,7 @@ class Solution {
         return point.amountBusy == 8;
     }
 
-    private boolean checkrow(char[][] board, Point point) {
+    private boolean checkRow(char[][] board, Point point) {
         for (int i = 0; i < board.length; i++) {
             char number = board[point.rowNum][i];
             writeBusyNum(number, point);
@@ -357,20 +371,31 @@ class Solution {
         public int hashCode() {
             return Objects.hash(rowNum, columnNum);
         }
+
+        @Override
+        public String toString() {
+            final StringBuffer sb = new StringBuffer("Point{");
+            sb.append("rowNum=").append(rowNum);
+            sb.append(", columnNum=").append(columnNum);
+            sb.append(", symbol=").append(symbol);
+            sb.append('}');
+            return sb.toString();
+        }
     }
 
     public static void main(String[] args) {
+
         new Solution().solveSudoku(
                 new char[][]{
-                        new char[]{'.', '.', '9', '7', '4', '8', '.', '.', '.'},
-                        new char[]{'7', '.', '.', '.', '.', '.', '.', '.', '.'},
-                        new char[]{'.', '2', '.', '1', '.', '9', '.', '.', '.'},
-                        new char[]{'.', '.', '7', '.', '.', '.', '2', '4', '.'},
-                        new char[]{'.', '6', '4', '.', '1', '.', '5', '9', '.'},
-                        new char[]{'.', '9', '8', '.', '.', '.', '3', '.', '.'},
-                        new char[]{'.', '.', '.', '8', '.', '3', '.', '2', '.'},
-                        new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '6'},
-                        new char[]{'.', '.', '.', '2', '7', '5', '9', '.', '.'}
+                        new char[]{'.', '.', '.', '2', '.', '.', '.', '6', '3'},
+                        new char[]{'3', '.', '.', '.', '.', '5', '4', '.', '1'},
+                        new char[]{'.', '.', '1', '.', '.', '3', '9', '8', '.'},
+                        new char[]{'.', '.', '.', '.', '.', '.', '.', '9', '.'},
+                        new char[]{'.', '.', '.', '5', '3', '8', '.', '.', '.'},
+                        new char[]{'.', '3', '.', '.', '.', '.', '.', '.', '.'},
+                        new char[]{'.', '2', '6', '3', '.', '.', '5', '.', '.'},
+                        new char[]{'5', '.', '3', '7', '.', '.', '.', '.', '8'},
+                        new char[]{'4', '7', '.', '.', '.', '1', '.', '.', '.'}
                 }
         );
 //        new Solution().solveSudoku(
@@ -390,29 +415,29 @@ class Solution {
 }
 
 //[ Output
-//          ["8","4","5",  "2","1","9",  "7","6","3"],
-//          ["3","9","7",  "8","6","5",  "4","2","1"],
-//          ["2","6","1",  "4","7","3",  "9","8","5"],
+//          ['8','4','5',  '2','1','9',  '7','6','3'],
+//          ['3','9','7',  '8','6','5',  '4','2','1'],
+//          ['2','6','1',  '4','7','3',  '9','8','5'],
 
-//          ["7","5","8",  "1","4","2",  "3","9","6"],
-//          ["9","1","2",  "5","3","8",  "6","4","7"],
-//          ["1","3","6",  "9","2","7",  "8","5","4"],
+//          ['7','5','8',  '1','4','2',  '3','9','6'],
+//          ['9','1','2',  '5','3','8',  '6','4','7'],
+//          ['1','3','6',  '9','2','7',  '8','5','4'],
 
-//          ["1","2","6",  "3","8","4",  "5","7","9"],
-//          ["5","9","3",  "7","2","6",  "1","4","8"],
-//          ["4","7","9",  "6","5","1",  "2","3","8"]
+//          ['1','2','6',  '3','8','4',  '5','7','9'],
+//          ['5','9','3',  '7','2','6',  '1','4','8'],
+//          ['4','7','9',  '6','5','1',  '2','3','8']
 // Expected
 //[
-    //      ["8","5","4",  "2","1","9",  "7","6","3"]
-    //      ["3","9","7",  "8","6","5",  "4","2","1"]
-    //      ["2","6","1",  "4","7","3",  "9","8","5"],
+//      ['8','5','4',  '2','1','9',  '7','6','3']
+//      ['3','9','7',  '8','6','5',  '4','2','1']
+//      ['2','6','1',  '4','7','3',  '9','8','5'],
 
-    //      ["7","8","5",  "1","2","6",  "3","9","4"],
-    //      ["6","4","9",  "5","3","8",  "1","7","2"],
-    //      ["1","3","2",  "9","4","7",  "8","5","6"],
+//      ['7','8','5',  '1','2','6',  '3','9','4'],
+//      ['6','4','9',  '5','3','8',  '1','7','2'],
+//      ['1','3','2',  '9','4','7',  '8','5','6'],
 
 
-    //      ["9","2","6",  "3","8","4",  "5","1","7"],
-    //      ["5","1","3",  "7","9","2",  "6","4","8"],
-    //      ["4","7","8",  "6","5","1",  "2","3","9"]
+//      ['9','2','6',  '3','8','4',  '5','1','7'],
+//      ['5','1','3',  '7','9','2',  '6','4','8'],
+//      ['4','7','8',  '6','5','1',  '2','3','9']
 // ]
