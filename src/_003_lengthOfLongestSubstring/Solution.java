@@ -1,39 +1,49 @@
 package _003_lengthOfLongestSubstring;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 class Solution {
     public int lengthOfLongestSubstring(String str) {
-        System.out.println("\"" + str + "\"");
         if (str.length() <= 1) {
             return str.length();
         }
         int maxSize = 0;
-        for (int i = 0; i < str.length(); i++) {
-            int val = lengthOfLongestSubstring(str, i);
+        Set<Character> set = new HashSet<>();
+        //-------------
+        for (int j = 0; j < str.length(); j++) {
+            char symbol = str.charAt(j);
+            set.add(symbol);
+        }
+        if (set.size() <= 2) {
+            return set.size();
+        }
+        set = new HashSet<>();
+        //-------------
+        for (int offset = 0; offset < str.length(); offset++) {
+            // int val = lengthOfLongestSubstring(str, offset);
+            int val = 0;
+
+            for (int j = offset; j < str.length(); j++) {
+                char symbol = str.charAt(j);
+                if (set.contains(symbol)) {
+                    break;
+                } else {
+                    set.add(symbol);
+                }
+            }
+
+            val = set.size();
             maxSize = Math.max(val, maxSize);
+            set = new HashSet<>();
         }
         return maxSize;
     }
 
-    public int lengthOfLongestSubstring(String str, int offset) {
-        Set<Character> set = new TreeSet<>();
-        char[] charArray = str.toCharArray();
-        for (int i = offset; i < charArray.length; i++) {
-            char symbol = charArray[i];
-            if (set.contains(symbol)) {
-                return set.size();
-            } else {
-                set.add(symbol);
-            }
-        }
-        return set.size();
-    }
 
     public static void main(String[] args) {
         System.out.println(
-                new Solution().lengthOfLongestSubstring("")
+                new Solution().lengthOfLongestSubstring("pwwkew")
         );
     }
 }
