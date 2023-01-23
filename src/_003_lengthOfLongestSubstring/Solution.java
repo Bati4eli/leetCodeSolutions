@@ -1,15 +1,12 @@
 package _003_lengthOfLongestSubstring;
 
-import java.util.HashSet;
-import java.util.Set;
-
 class Solution {
     public int lengthOfLongestSubstring(String str) {
         if (str.length() <= 1) {
             return str.length();
         }
         int maxSize = 0;
-        Set<Character> set = new HashSet<>();
+        MySet set = new MySet();
         //-------------
         for (int j = 0; j < str.length(); j++) {
             char symbol = str.charAt(j);
@@ -18,11 +15,9 @@ class Solution {
         if (set.size() <= 2) {
             return set.size();
         }
-        set = new HashSet<>();
+        set.clear();
         //-------------
         for (int offset = 0; offset < str.length(); offset++) {
-            // int val = lengthOfLongestSubstring(str, offset);
-            int val = 0;
 
             for (int j = offset; j < str.length(); j++) {
                 char symbol = str.charAt(j);
@@ -32,12 +27,36 @@ class Solution {
                     set.add(symbol);
                 }
             }
-
-            val = set.size();
-            maxSize = Math.max(val, maxSize);
-            set = new HashSet<>();
+            maxSize = Math.max(set.size(), maxSize);
+            set.clear();
         }
         return maxSize;
+    }
+
+    static class MySet {
+        boolean[] array = new boolean[127];
+        int size = 0;
+
+        public int size() {
+            return size;
+        }
+
+        public boolean contains(char o) {
+            return array[o];
+        }
+
+        public boolean add(char character) {
+            boolean cont = array[character];
+            if (!cont) {
+                ++size;
+            }
+            return array[character] = true;
+        }
+
+        public void clear() {
+            size = 0;
+            array = new boolean[256];
+        }
     }
 
 
@@ -45,5 +64,9 @@ class Solution {
         System.out.println(
                 new Solution().lengthOfLongestSubstring("pwwkew")
         );
+
+        for (int i = 0; i < 256; i++) {
+            System.out.println("# " + i + " : " + Character.toString(i));
+        }
     }
 }
