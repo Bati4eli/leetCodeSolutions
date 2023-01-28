@@ -16,10 +16,13 @@ class Solution {
 
         for (int i = s.length() - 1; i >= 0; i--) {
             int digit = Character.digit(s.charAt(i), radix);
-            if (digit < 0 || result < multmin || result < limit + digit) {
+            if (digit < 0 || result < multmin  ) {
                 return 0;
             }
             result *= radix;
+            if(result < limit + digit){
+                return 0;
+            }
             result -= digit;
         }
         return negative ? result : -result;
