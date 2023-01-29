@@ -12,7 +12,6 @@ class Solution {
 
     public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
         Map<Integer, List<Node>> graph = fillGraph(n, flights);
-
         Queue<Node> queue = new LinkedList<>();
 
         queue.offer(new Node(src, 0));
@@ -49,23 +48,22 @@ class Solution {
     private void checkNeighbours(Queue<Node> queue, int[] minCost, Node curr, List<Node> neighbours) {
         for (Node neighbour : neighbours) {
             int neighbourNode = neighbour.index;
-            int price = neighbour.value;
-            if (price + curr.value >= minCost[neighbourNode]) {
+            int price = neighbour.price;
+            if (price + curr.price >= minCost[neighbourNode]) {
                 continue;
             }
-            minCost[neighbourNode] = price + curr.value;
+            minCost[neighbourNode] = price + curr.price;
             queue.offer(new Node(neighbourNode, minCost[neighbourNode]));
         }
     }
 
     static class Node {
-        public Node(int index, int value) {
+        public Node(int index, int price) {
             this.index = index;
-            this.value = value;
+            this.price = price;
         }
-
         int index;
-        int value;
+        int price;
     }
 
     public static void main(String[] args) {
