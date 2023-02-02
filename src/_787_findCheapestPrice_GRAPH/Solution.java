@@ -49,10 +49,11 @@ class Solution {
         for (Node neighbour : neighbours) {
             int neighbourNode = neighbour.index;
             int price = neighbour.price;
-            if (price + curr.price >= minCost[neighbourNode]) {
+            int sum = price + curr.price;
+            if (sum >= minCost[neighbourNode]) {
                 continue;
             }
-            minCost[neighbourNode] = price + curr.price;
+            minCost[neighbourNode] = sum;
             queue.offer(new Node(neighbourNode, minCost[neighbourNode]));
         }
     }
