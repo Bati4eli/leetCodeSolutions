@@ -22,9 +22,8 @@ class Solution {
     }};
 
     public List<String> letterCombinations(String digits) {
-        List<String> result = new ArrayList<>();
         if (digits.equals("")) {
-            return result;
+            return new ArrayList<>();
         }
         Deque<String> deque = new ArrayDeque<>();
         deque.add("");
@@ -33,20 +32,16 @@ class Solution {
             char chr = digits.charAt(i);
             char[] bundle = BUTTONS.get(chr);
             int size = deque.size();
-
             for (int j = 0; j < size; j++) {
                 String pull = deque.pollFirst();
-                for(char c: bundle){
-                    String temp = pull.concat(c+"") ;
+                for (char c : bundle) {
+                    String temp = pull.concat(c + "");
                     deque.add(temp);
                 }
             }
         }
 
-        while (!deque.isEmpty()) {
-            result.add(deque.poll());
-        }
-        return result;
+        return new ArrayList<>(deque);
     }
 
     public static void main(String[] args) {
