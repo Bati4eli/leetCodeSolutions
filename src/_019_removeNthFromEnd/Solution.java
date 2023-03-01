@@ -29,8 +29,8 @@ class Solution {
         } else {
             ListNode previousNode = queue.poll();
             previousNode.next = getNext(previousNode);
+            return head;
         }
-        return head;
     }
 
     private ListNode getNext(ListNode node) {

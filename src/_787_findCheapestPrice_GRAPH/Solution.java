@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+/**
+ * Алгоритм Дейкстры
+ */
 class Solution {
 
     public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
