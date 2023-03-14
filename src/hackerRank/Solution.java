@@ -14,7 +14,7 @@ public class Solution {
             char dec = getDecorator(i, codes.length, data.length);
 
             data[i] = (char) (data[i] + codes[cursor] + dec);
-            prevDec = dec;
+            prevDec =(char) (prevDec + dec) ;
         }
 
         return String.valueOf(data);
@@ -30,7 +30,7 @@ public class Solution {
             char dec = getDecorator(i, codes.length, data.length);
 
             data[i] = (char) (data[i] - codes[cursor] - dec);
-            prevDec = dec;
+            prevDec =(char) (prevDec + dec) ;
         }
 
         return String.valueOf(data);
