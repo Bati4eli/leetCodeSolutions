@@ -4,7 +4,7 @@ import leetCode.common.Utils;
 
 import java.util.Arrays;
 
-public class Solution {
+public class CoderEncoder {
 
     public static void main(String[] args) {
         final String INPUT_DATA = "MY STRING";
