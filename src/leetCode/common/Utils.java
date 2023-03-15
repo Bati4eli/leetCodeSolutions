@@ -9,7 +9,7 @@ public class Utils {
         long end_time = System.nanoTime();
         double difference = (end_time - start_time) / 1e6;
 
-        System.out.println("TOTAL TIME: " + difference + " sec.");
+        System.out.println("TOTAL TIME: " + difference + " ms.");
     }
 
     public static ListNode getListNode(int[] ints) {
