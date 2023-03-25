@@ -7,8 +7,8 @@ import java.util.Arrays;
 public class CoderEncoder {
 
     public static void main(String[] args) {
-        final String INPUT_DATA = "MY STRING";
-        final String CODE = "MY PASS IS VERY STRONG!";
+        final String INPUT_DATA = "MY STRING 1234";
+        final String CODE = "MY PASS IS VERY STRONG_";
 
         Utils.countTime(() -> {
             String data = INPUT_DATA;
@@ -38,7 +38,7 @@ public class CoderEncoder {
         char[] data = source.toCharArray();
 
         final char hashData = (char) data.length;
-        final char hashCode = getHashCode(codes);
+        final char hashCode = getHashCode(codeString);
         char prevDec = (char) (hashData + hashCode);
 
         for (int i = 0; i < data.length; i++) {
@@ -68,7 +68,7 @@ public class CoderEncoder {
         return (char) val;
     }
 
-    private static char getHashCode(char[] arr) {
-        return (char) (Math.abs(Arrays.hashCode(arr)) % Character.MAX_VALUE);
+    private static char getHashCode(String code) {
+        return (char) (Math.abs(code.hashCode()) % Character.MAX_VALUE);
     }
 }

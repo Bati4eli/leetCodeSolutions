@@ -11,32 +11,32 @@ import java.util.Set;
 class Solution {
 
     public List<List<Integer>> threeSum(int[] nums) {
-        int target = 0;
+        final int target = 0;
         Arrays.sort(nums);
-        Set<List<Integer>> s = new HashSet<>();
+        Set<List<Integer>> set = new HashSet<>();
         List<List<Integer>> output = new ArrayList<>();
         for (int i = 0; i < nums.length; i++) {
             int j = i + 1;
-            int k = nums.length - 1;
-            while (j < k) {
-                int sum = nums[i] + nums[j] + nums[k];
+            int g = nums.length - 1;
+            while (j < g) {
+                int sum = nums[i] + nums[j] + nums[g];
                 if (sum == target) {
-                    s.add(Arrays.asList(nums[i], nums[j], nums[k]));
+                    set.add(Arrays.asList(nums[i], nums[j], nums[g]));
                     j++;
-                    k--;
+                    g--;
                 } else if (sum < target) {
                     j++;
                 } else {
-                    k--;
+                    g--;
                 }
             }
         }
-        output.addAll(s);
+        output.addAll(set);
         return output;
     }
 
     public static void main(String[] args) {
-        new ArrayList<>().add(1, 32);
+//        new ArrayList<>().add(1, 32);
         System.out.println(
                 new Solution().threeSum(
                         new int[]{-1, 0, 1, 2, -1, -4}
